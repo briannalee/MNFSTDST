@@ -1,9 +1,8 @@
-﻿using UnityEngine;
 using System.Collections.Generic;
 
 namespace Assets.Scripts.World
 {
-	public enum TileGroupType
+    public enum TileGroupType
     {
         Water,
         Land
@@ -11,9 +10,9 @@ namespace Assets.Scripts.World
 
     public class TileGroup
     {
+        public List<TileData> Tiles;
 
         public TileGroupType Type;
-        public List<TileData> Tiles;
 
         public TileGroup()
         {

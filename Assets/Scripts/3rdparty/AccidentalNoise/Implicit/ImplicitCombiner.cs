@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts._3rdparty.AccidentalNoise.Enums;
 
-namespace AccidentalNoise
+namespace Assets.Scripts._3rdparty.AccidentalNoise.Implicit
 {
     public sealed class ImplicitCombiner : ImplicitModuleBase
     {

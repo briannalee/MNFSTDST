@@ -1,6 +1,7 @@
 ﻿using System;
+using Assets.Scripts._3rdparty.AccidentalNoise.Enums;
 
-namespace AccidentalNoise
+namespace Assets.Scripts._3rdparty.AccidentalNoise.Implicit
 {
     public sealed class ImplicitFractal : ImplicitModuleBase
     {

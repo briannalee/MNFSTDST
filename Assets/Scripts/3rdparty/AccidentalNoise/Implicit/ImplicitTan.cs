@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AccidentalNoise
+namespace Assets.Scripts._3rdparty.AccidentalNoise.Implicit
 {
     public sealed class ImplicitTan : ImplicitModuleBase
     {

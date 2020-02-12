@@ -1,6 +1,8 @@
 ﻿using System;
+using Assets.Scripts._3rdparty.AccidentalNoise.Enums;
+using Assets.Scripts._3rdparty.AccidentalNoise.Implicit;
 
-namespace AccidentalNoise
+namespace Assets.Scripts._3rdparty.AccidentalNoise
 {
     public class Mapping
     {

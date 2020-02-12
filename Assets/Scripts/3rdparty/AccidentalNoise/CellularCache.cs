@@ -1,6 +1,6 @@
 using System;
 
-namespace AccidentalNoise
+namespace Assets.Scripts._3rdparty.AccidentalNoise
 {
     internal class CellularCache
     {

@@ -1,4 +1,4 @@
-﻿namespace AccidentalNoise
+﻿namespace Assets.Scripts._3rdparty.AccidentalNoise.Enums
 {
     public enum MappingMode
     {
