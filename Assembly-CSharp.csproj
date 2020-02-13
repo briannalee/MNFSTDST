@@ -105,9 +105,9 @@
     <Compile Include="Assets\Scripts\3rdparty\AccidentalNoise\Noise.cs" />
     <Compile Include="Assets\Scripts\3rdparty\AccidentalNoise\NoiseLookupTable.cs" />
     <Compile Include="Assets\Scripts\3rdparty\MathHelper.cs" />
-    <Compile Include="Assets\Scripts\3rdparty\ThreadedJob.cs" />
     <Compile Include="Assets\Scripts\World\GenerateWorld.cs" />
     <Compile Include="Assets\Scripts\World\MapData.cs" />
+    <Compile Include="Assets\Scripts\World\MapOverlay.cs" />
     <Compile Include="Assets\Scripts\World\River.cs" />
     <Compile Include="Assets\Scripts\World\TileData.cs" />
     <Compile Include="Assets\Scripts\World\TileGroup.cs" />

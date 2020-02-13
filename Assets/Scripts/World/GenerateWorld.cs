@@ -130,10 +130,14 @@ namespace Assets.Scripts.World
         [Header("Generator Values")] [SerializeField]
         public int Width = 512;
 
+        // Our texture output gameobject
+        private MeshRenderer heightMapRenderer;
+        public GameObject Overlay;
 
         // Start is called before the first frame update
         private void Start()
         {
+            heightMapRenderer = Overlay.GetComponent<MeshRenderer>();
             Initialize();
             GetData();
             LoadTiles();
@@ -305,6 +309,9 @@ namespace Assets.Scripts.World
                     }
                 }
             }*/
+            Overlay.transform.localScale = new Vector3(Width, Height, 1);
+            Overlay.transform.position = new Vector3(Width/2, Height/2, -1);
+            heightMapRenderer.materials[0].mainTexture = MapOverlay.GetTexture (Width, Height, Tiles);
         }
 
 

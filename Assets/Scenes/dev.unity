@@ -96,6 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -120,6 +121,85 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &104512415
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 104512418}
+  - component: {fileID: 104512417}
+  - component: {fileID: 104512416}
+  m_Layer: 0
+  m_Name: Plane
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!23 &104512416
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 104512415}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 1925ce8622a01ef478901d7394f1cbfc, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!33 &104512417
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 104512415}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &104512418
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 104512415}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &414124015
 GameObject:
   m_ObjectHideFlags: 0
@@ -166,6 +246,7 @@ TilemapRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -236,6 +317,7 @@ Tilemap:
   m_TileColorArray:
   - m_RefCount: 0
     m_Data: {r: -4.279032e-38, g: -4.279032e-38, b: -4.279032e-38, a: -4.279032e-38}
+  m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Origin: {x: 0, y: -2, z: 0}
@@ -289,56 +371,57 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 778addb8084c9f34e926e53b0e9cd3b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Tilemap: {fileID: 414124018}
-  DeepWaterTile: {fileID: 11400000, guid: bb94547048b7ebb40a7b91c239275a22, type: 2}
-  DeepWaterHeight: 0.2
-  WaterTile: {fileID: 11400000, guid: 69e27557369f1274395a4fce6e992ad9, type: 2}
-  WaterHeight: 0.3
-  WetSandTile: {fileID: 11400000, guid: f0ab2e5bc2321db4ab5b7b46037bb001, type: 2}
-  WetSandHeight: 0.32
-  SandTile: {fileID: 11400000, guid: 82785ee645db142479df8132e8d60f52, type: 2}
-  SandHeight: 0.36
-  GrassTile: {fileID: 11400000, guid: 61533ea6e98000f42bbf9f4a7398db28, type: 2}
-  GrassHeight: 0.5
-  ForestTile: {fileID: 11400000, guid: 70577eaba6e52294583ea085fe61f2ea, type: 2}
-  ForestHeight: 0.65
-  DirtTile: {fileID: 11400000, guid: 93f167167e978c74cac3a75c9d072504, type: 2}
-  DirtHeight: 0.68
-  MountainTile: {fileID: 11400000, guid: bf9e020880aaf4e4f9f9a76ce115536d, type: 2}
-  MountainHeight: 0.7
-  SnowTile: {fileID: 11400000, guid: 41944695e23c3564987ff05c8e8134a4, type: 2}
-  SnowHeight: 1
-  Seed: 0
-  Width: 256
-  Height: 256
-  TerrainOctaves: 6
-  TerrainFrequency: 3
-  DeepWater: 0.2
-  ShallowWater: 0.4
-  Sand: 0.5
-  Grass: 0.7
-  Forest: 0.65
-  Rock: 0.75
-  HeatOctaves: 4
-  HeatFrequency: 3
-  ColdestValue: 0.05
   ColderValue: 0.18
+  ColdestValue: 0.05
   ColdValue: 0.4
-  WarmValue: 0.6
-  WarmerValue: 0.8
-  MoistureOctaves: 4
-  MoistureFrequency: 3
+  DeepWater: 0.2
+  DeepWaterHeight: 0.2
+  DeepWaterTile: {fileID: 11400000, guid: bb94547048b7ebb40a7b91c239275a22, type: 2}
+  DirtHeight: 0.68
+  DirtTile: {fileID: 11400000, guid: 93f167167e978c74cac3a75c9d072504, type: 2}
   DryerValue: 0.27
   DryValue: 0.4
-  WetValue: 0.6
+  Forest: 0.65
+  ForestHeight: 0.65
+  ForestTile: {fileID: 11400000, guid: 70577eaba6e52294583ea085fe61f2ea, type: 2}
+  Grass: 0.7
+  GrassHeight: 0.5
+  GrassTile: {fileID: 11400000, guid: 61533ea6e98000f42bbf9f4a7398db28, type: 2}
+  HeatFrequency: 3
+  HeatOctaves: 4
+  Height: 256
+  MaxRiverAttempts: 1000
+  MaxRiverIntersections: 2
+  MinRiverHeight: 0.6
+  MinRiverLength: 20
+  MinRiverTurns: 18
+  MoistureFrequency: 3
+  MoistureOctaves: 4
+  MountainHeight: 0.7
+  MountainTile: {fileID: 11400000, guid: bf9e020880aaf4e4f9f9a76ce115536d, type: 2}
+  RiverCount: 40
+  Rock: 0.75
+  Sand: 0.5
+  SandHeight: 0.36
+  SandTile: {fileID: 11400000, guid: 82785ee645db142479df8132e8d60f52, type: 2}
+  Seed: 0
+  ShallowWater: 0.4
+  SnowHeight: 1
+  SnowTile: {fileID: 11400000, guid: 41944695e23c3564987ff05c8e8134a4, type: 2}
+  TerrainFrequency: 3
+  TerrainOctaves: 6
+  Tilemap: {fileID: 414124018}
+  WarmerValue: 0.8
+  WarmValue: 0.6
+  WaterHeight: 0.3
+  WaterTile: {fileID: 11400000, guid: 69e27557369f1274395a4fce6e992ad9, type: 2}
+  WetSandHeight: 0.32
+  WetSandTile: {fileID: 11400000, guid: f0ab2e5bc2321db4ab5b7b46037bb001, type: 2}
   WetterValue: 0.8
   WettestValue: 0.9
-  RiverCount: 40
-  MinRiverHeight: 0.6
-  MaxRiverAttempts: 1000
-  MinRiverTurns: 18
-  MinRiverLength: 20
-  MaxRiverIntersections: 2
+  WetValue: 0.6
+  Width: 256
+  Overlay: {fileID: 104512415}
 --- !u!156049354 &812572669
 Grid:
   m_ObjectHideFlags: 0
