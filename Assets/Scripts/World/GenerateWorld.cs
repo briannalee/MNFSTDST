@@ -1,9 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Assets.Scripts._3rdparty;
 using Assets.Scripts._3rdparty.AccidentalNoise.Enums;
 using Assets.Scripts._3rdparty.AccidentalNoise.Implicit;
+using Assets.Scripts.Villages;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Pathfinding;
+using Random = UnityEngine.Random;
 
 namespace Assets.Scripts.World
 {
@@ -17,126 +23,157 @@ namespace Assets.Scripts.World
         private ImplicitFractal heightMap;
         private readonly List<Vector3Int> moistureAdjustedTiles = new List<Vector3Int>();
 
-        [SerializeField] public float ColderValue = 0.18f;
+        // Adjustable variables for Unity Inspector
+        [Header("Generator Values")]
+        [SerializeField]
+        public int Width = 512;
+        [SerializeField]
+        public int Height = 512;
 
-        [SerializeField] public float ColdestValue = 0.05f;
+        [Header("Height Map")]
+        [SerializeField]
+        protected int TerrainOctaves = 6;
+        [SerializeField]
+        protected double TerrainFrequency = 1.25;
+        [SerializeField]
+        protected float DeepWater = 0.2f;
+        [SerializeField]
+        protected float ShallowWater = 0.4f;
+        [SerializeField] 
+        protected float Shore = 0.49f;
+        [SerializeField]
+        protected float Sand = 0.5f;
+        [SerializeField]
+        protected float Dirt = 0.55f;
+        [SerializeField]
+        protected float Grass = 0.7f;
+        [SerializeField]
+        protected float Forest = 0.8f;
+        [SerializeField]
+        protected float Mountain = 0.9f;
+        [SerializeField]
+        protected float Snow = 0.95f;
 
-        [SerializeField] public float ColdValue = 0.4f;
+        [Header("Heat Map")]
+        [SerializeField]
+        protected int HeatOctaves = 4;
+        [SerializeField]
+        protected double HeatFrequency = 3.0;
+        [SerializeField]
+        public float ColdestValue = 0.05f;
+        [SerializeField]
+        public float ColderValue = 0.18f;
+        [SerializeField]
+        public float ColdValue = 0.4f;
+        [SerializeField]
+        protected float WarmValue = 0.6f;
+        [SerializeField]
+        protected float WarmerValue = 0.8f;
 
-        [SerializeField] public float DeepWater = 0.2f;
+        [Header("Moisture Map")]
+        [SerializeField]
+        protected int MoistureOctaves = 4;
+        [SerializeField]
+        protected double MoistureFrequency = 3.0;
+        [SerializeField]
+        protected float DryerValue = 0.27f;
+        [SerializeField]
+        protected float DryValue = 0.4f;
+        [SerializeField]
+        protected float WetValue = 0.6f;
+        [SerializeField]
+        protected float WetterValue = 0.8f;
+        [SerializeField]
+        protected float WettestValue = 0.9f;
 
-        public double DeepWaterHeight = 0.20;
+        [Header("Rivers")]
+        [SerializeField]
+        protected int RiverCount = 40;
+        [SerializeField]
+        protected float MinRiverHeight = 0.6f;
+        [SerializeField]
+        protected int MaxRiverAttempts = 1000;
+        [SerializeField]
+        protected int MinRiverTurns = 18;
+        [SerializeField]
+        protected int MinRiverLength = 20;
+        [SerializeField]
+        protected int MaxRiverIntersections = 2;
 
         public TileBase DeepWaterTile;
-        public double DirtHeight = 0.88;
         public TileBase DirtTile;
 
-        [SerializeField] public float DryerValue = 0.27f;
-
-        [SerializeField] public float DryValue = 0.4f;
-
-        [SerializeField] public float Forest = 0.8f;
-
-        public double ForestHeight = 0.62;
         public TileBase ForestTile;
 
-        [SerializeField] public float Grass = 0.7f;
-
-        public double GrassHeight = 42;
         public TileBase GrassTile;
         private MapData heatData;
 
-        [SerializeField] public double HeatFrequency = 3.0;
-
         private ImplicitCombiner heatMap;
 
-        [Header("Heat Map")] [SerializeField] public int HeatOctaves = 4;
-
-        [SerializeField] public int Height = 512;
 
         private MapData heightData;
         private readonly List<TileGroup> lands = new List<TileGroup>();
 
-        [SerializeField] public int MaxRiverAttempts = 1000;
-
-        [SerializeField] public int MaxRiverIntersections = 2;
-
-        [SerializeField] public float MinRiverHeight = 0.6f;
-
-        [SerializeField] public int MinRiverLength = 20;
-
-        [SerializeField] public int MinRiverTurns = 18;
-
         private MapData moistureData;
 
-        [SerializeField] public double MoistureFrequency = 3.0;
 
         private ImplicitFractal moistureMap;
 
-        [Header("Moisture Map")] [SerializeField]
-        public int MoistureOctaves = 4;
-
-        public double MountainHeight = 0.9;
         public TileBase MountainTile;
-
-        [Header("Rivers")] [SerializeField] public int RiverCount = 40;
 
         private List<RiverGroup> riverGroups = new List<RiverGroup>();
 
         private List<River> rivers = new List<River>();
 
-        [SerializeField] public float Rock = 0.9f;
-
-        [SerializeField] public float Sand = 0.5f;
-
-        public double SandHeight = 0.28;
         public TileBase SandTile;
 
         public int Seed;
 
-        [SerializeField] public float ShallowWater = 0.4f;
 
-        public double SnowHeight = 1;
         public TileBase SnowTile;
 
-        [SerializeField] public double TerrainFrequency = 1.25;
 
-        [Header("Height Map")] [SerializeField]
-        public int TerrainOctaves = 6;
 
         public Tilemap Tilemap;
+        public Tilemap InteractableTilemap;
+        public Tilemap ImpassableTilemap;
 
         // Final Objects
         public TileData[,] Tiles;
 
-        [SerializeField] public float WarmerValue = 0.8f;
-
-        [SerializeField] public float WarmValue = 0.6f;
-
-        public double WaterHeight = 0.25;
 
         private List<TileGroup> waters = new List<TileGroup>();
         public TileBase WaterTile;
-        public double WetSandHeight = 0.26;
         public TileBase WetSandTile;
 
-        [SerializeField] public float WetterValue = 0.8f;
+        public TileBase VillageTile;
 
-        [SerializeField] public float WettestValue = 0.9f;
-
-        [SerializeField] public float WetValue = 0.6f;
-
-        // Adjustable variables for Unity Inspector
-        [Header("Generator Values")] [SerializeField]
-        public int Width = 512;
 
         // Our texture output gameobject
         private MeshRenderer heightMapRenderer;
         public GameObject Overlay;
 
+        public AstarPath Pathfinder;
+        public GameObject ImpassableColliders;
+        public GameObject VillageObject;
+        public TileBase RoadTile;
+        public TileBase DebugRoadTile;
+
+        public BiomeType[,] BiomeTable = new BiomeType[6, 6] {   
+            //COLDEST        //COLDER          //COLD                  //HOT                          //HOTTER                       //HOTTEST
+            { BiomeType.Ice, BiomeType.Tundra, BiomeType.Grassland,    BiomeType.Desert,              BiomeType.Desert,              BiomeType.Desert },              //DRYEST
+            { BiomeType.Ice, BiomeType.Tundra, BiomeType.Grassland,    BiomeType.Desert,              BiomeType.Desert,              BiomeType.Desert },              //DRYER
+            { BiomeType.Ice, BiomeType.Tundra, BiomeType.Woodland,     BiomeType.Woodland,            BiomeType.Savanna,             BiomeType.Savanna },             //DRY
+            { BiomeType.Ice, BiomeType.Tundra, BiomeType.BorealForest, BiomeType.Woodland,            BiomeType.Savanna,             BiomeType.Savanna },             //WET
+            { BiomeType.Ice, BiomeType.Tundra, BiomeType.BorealForest, BiomeType.SeasonalForest,      BiomeType.TropicalRainforest,  BiomeType.TropicalRainforest },  //WETTER
+            { BiomeType.Ice, BiomeType.Tundra, BiomeType.BorealForest, BiomeType.TemperateRainforest, BiomeType.TropicalRainforest,  BiomeType.TropicalRainforest }   //WETTEST
+        };
+
+        public Seeker SeekerTool;
         // Start is called before the first frame update
         private void Start()
         {
+            SeekerTool = GetComponent<Seeker>();
             heightMapRenderer = Overlay.GetComponent<MeshRenderer>();
             Initialize();
             GetData();
@@ -151,25 +188,35 @@ namespace Assets.Scripts.World
 
             UpdateBitmasks();
             FloodFill();
+            GenerateBiomeMap();
+            GameObject[] villages = GenerateVillages();
+            
 
             Vector3Int[] positions = new Vector3Int[Height * Width];
+            Vector3Int[] impassablePositions = new Vector3Int[Height * Width];
+            TileBase[] impassableTileArray = new TileBase[positions.Length];
             TileBase[] tileArray = new TileBase[positions.Length];
 
 
             int index = 0;
+            int impassableIndex = 0;
 
             for (int x = 0; x < Width; x++)
             for (int y = 0; y < Height; y++)
             {
-                positions[index] = new Vector3Int(x, y, 0);
 
 
-                if (Tiles[x, y].Bitmask != 15) borderTiles.Add(new Vector3Int(x, y, 0));
+
+
+                if (Tiles[x, y].Bitmask != 15)
+                {
+                    borderTiles.Add(new Vector3Int(x, y, 0));
+                }
 
                 if (Tiles[x, y].MoistureType == MoistureType.Dryest)
                 {
                     tileArray[index] = SandTile;
-                    //_moistureAdjustedTiles.Add(new Vector3Int(x, y, 0));
+                    moistureAdjustedTiles.Add(new Vector3Int(x, y, 0));
                     index++;
                     continue;
                 }
@@ -181,83 +228,116 @@ namespace Assets.Scripts.World
                     continue;
                 }
 
-                if (Tiles[x, y].MoistureType == MoistureType.Dryer) moistureAdjustedTiles.Add(new Vector3Int(x, y, 0));
+                if (Tiles[x, y].MoistureType == MoistureType.Dryer)
+                {
+                    moistureAdjustedTiles.Add(new Vector3Int(x, y, 0));
+                }
 
-                if (Tiles[x, y].MoistureType == MoistureType.Wet) moistureAdjustedTiles.Add(new Vector3Int(x, y, 0));
+                if (Tiles[x, y].MoistureType == MoistureType.Wet)
+                {
+                    moistureAdjustedTiles.Add(new Vector3Int(x, y, 0));
+                }
 
                 if (Tiles[x, y].MoistureType == MoistureType.Wetter)
+                {
                     moistureAdjustedTiles.Add(new Vector3Int(x, y, 0));
+                }
+                    
 
-                if (Tiles[x, y].HeightValue <= DeepWaterHeight)
+                if (Tiles[x, y].HeightValue <= DeepWater)
                 {
-                    tileArray[index] = DeepWaterTile;
-                    index++;
+                    BoxCollider2D boxCollider = ImpassableColliders.AddComponent<BoxCollider2D>();
+                    boxCollider.size = new Vector2(1, 1);
+                    boxCollider.offset = new Vector2(x+0.5f, y+0.5f);
+                    boxCollider.bounds.Expand(Vector3.forward * 10);
+                    impassableTileArray[impassableIndex] = DeepWaterTile;
+                    impassablePositions[impassableIndex] = new Vector3Int(x, y, 0);
+                    impassableIndex++;
                     continue;
                 }
 
-                if (Tiles[x, y].HeightValue <= WaterHeight)
+                if (Tiles[x, y].HeightValue <= ShallowWater)
                 {
-                    tileArray[index] = WaterTile;
-                    index++;
+                    BoxCollider2D boxCollider = ImpassableColliders.AddComponent<BoxCollider2D>();
+                    boxCollider.size = new Vector2(1, 1);
+                    boxCollider.offset = new Vector2(x+0.5f, y+0.5f);
+                    boxCollider.bounds.Expand(Vector3.forward * 10);
+                    impassableTileArray[impassableIndex] = WaterTile;
+                    impassablePositions[impassableIndex] = new Vector3Int(x, y, 0);
+                    ImpassableTilemap.SetColliderType(new Vector3Int(x,y,0), Tile.ColliderType.Grid);
+                    impassableIndex++;
                     continue;
                 }
 
-                if (Tiles[x, y].HeightValue <= WetSandHeight)
+                if (Tiles[x, y].HeightValue <= Shore)
                 {
                     tileArray[index] = WetSandTile;
+                    positions[index] = new Vector3Int(x, y, 0);
                     index++;
                     continue;
                 }
 
-                if (Tiles[x, y].HeightValue <= SandHeight)
+                if (Tiles[x, y].HeightValue <= Sand)
                 {
                     tileArray[index] = SandTile;
-
+                    positions[index] = new Vector3Int(x, y, 0);
                     index++;
                     continue;
                 }
 
-                if (Tiles[x, y].HeightValue <= GrassHeight)
-                {
-                    tileArray[index] = GrassTile;
-                    index++;
-                    continue;
-                }
-
-                if (Tiles[x, y].HeightValue <= ForestHeight)
-                {
-                    tileArray[index] = ForestTile;
-                    index++;
-                    continue;
-                }
-
-
-                if (Tiles[x, y].HeightValue <= DirtHeight)
+                if (Tiles[x, y].HeightValue <= Dirt)
                 {
                     tileArray[index] = DirtTile;
+                    positions[index] = new Vector3Int(x, y, 0);
                     index++;
                     continue;
                 }
 
-                if (Tiles[x, y].HeightValue <= MountainHeight)
+                if (Tiles[x, y].HeightValue <= Grass)
                 {
-                    tileArray[index] = MountainTile;
+                    tileArray[index] = GrassTile;
+                    positions[index] = new Vector3Int(x, y, 0);
                     index++;
                     continue;
                 }
 
-                if (Tiles[x, y].HeightValue <= SnowHeight)
+                if (Tiles[x, y].HeightValue <= Forest)
                 {
-                    tileArray[index] = SnowTile;
+                    tileArray[index] = ForestTile;
+                    positions[index] = new Vector3Int(x, y, 0);
                     index++;
                     continue;
                 }
 
-                Debug.Log("ErrorPlacingTile: " + Tiles[x, y].HeightValue + " MountainHeight: " +
-                          (Tiles[x, y].HeightValue <= MountainHeight));
+
+                if (Tiles[x, y].HeightValue <= Mountain)
+                {
+                    BoxCollider2D boxCollider = ImpassableColliders.AddComponent<BoxCollider2D>();
+                    boxCollider.size = new Vector2(1, 1);
+                    boxCollider.offset = new Vector2(x+0.5f, y+0.5f);
+                    boxCollider.bounds.Expand(Vector3.forward * 10);
+                    impassableTileArray[impassableIndex] = MountainTile;
+                    impassablePositions[impassableIndex] = new Vector3Int(x, y, 0);
+                    impassableIndex++;
+                    continue;
+                }
+
+                if (Tiles[x, y].HeightValue <= Snow)
+                {
+                    BoxCollider2D boxCollider = ImpassableColliders.AddComponent<BoxCollider2D>();
+                    boxCollider.size = new Vector2(1, 1);
+                    boxCollider.offset = new Vector2(x+0.5f, y+0.5f);
+                    boxCollider.bounds.Expand(Vector3.forward * 10);
+                    impassableTileArray[impassableIndex] = SnowTile;
+                    impassablePositions[impassableIndex] = new Vector3Int(x, y, 0);
+                    impassableIndex++;
+                    continue;
+                }
             }
 
             Tilemap.SetTiles(positions, tileArray);
+            ImpassableTilemap.SetTiles(impassablePositions,impassableTileArray);
+
 
             foreach (Vector3Int borderTile in borderTiles)
             {
@@ -290,28 +370,178 @@ namespace Assets.Scripts.World
             }
 
 
-            /*for (int x = -50; x <= 50; x++)
-            {
-                for (int y = -50; y <= 50; y++)
-                {
-                    //Generate Heightmap
-                    int tyleType = Random.Range(0, 2);
-                    switch (tyleType)
-                    {
-                        case 0:
-                            Tilemap.SetTile(new Vector3Int(x,y,0), GrassTile);
-                            break;
-                        case 1:
-                            Tilemap.SetTile(new Vector3Int(x, y, 0), DirtTile);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }*/
             Overlay.transform.localScale = new Vector3(Width, Height, 1);
             Overlay.transform.position = new Vector3(Width/2, Height/2, -1);
-            heightMapRenderer.materials[0].mainTexture = MapOverlay.GetTexture (Width, Height, Tiles);
+            //heightMapRenderer.materials[0].mainTexture = MapOverlay.GetHeightMapTexture (Width, Height, Tiles);
+            Pathfinder.Scan();
+
+            GameObject lastVillage = null;
+            foreach (GameObject village in villages)
+            {
+                if (lastVillage != null)
+                {
+                    Village villageScript = village.GetComponent<Village>();
+                    villageScript.FindPathToVillage(lastVillage);
+                }
+                lastVillage = village;
+            }
+
+            StartCoroutine(OptimizeRoads(villages));
+        }
+
+
+        private IEnumerator OptimizeRoads(GameObject[] villages)
+        {
+            List<Road> roads = new List<Road>();
+            List<Vector3> roadPointsVector3 = new List<Vector3>();
+            List<Vector3Int> roadPointsCell = new List<Vector3Int>();
+
+
+            foreach (GameObject village in villages)
+            {
+                //Check if there is even any path's to work on
+                Village villageScript = village.GetComponent<Village>();
+                if (villageScript.Path == null) continue;
+                
+                //Wait for the path to be finished, if needed
+                yield return StartCoroutine(villageScript.Path.WaitForPath());
+                
+                //Create new Road Class to hold our road data for this road
+                Road road = new Road(villageScript.Path.vectorPath.Count);
+
+                //AdjustedRoadSections holds the sections of road that are near other roads
+                //The internal list contains an array with length of 2
+                //Index 0: The road point
+                //Index 1: The closest point to this road point, not including this current road
+                List<List<Vector3[]>> adjustedRoadSections = new List<List<Vector3[]>>();
+                int adjustedSectionsCount = 0;
+                bool isContinuous = false;
+
+                //List of cell points to add to our master list (roadPointsCell)
+                List<Vector3Int> roadPointsCellToAdd = new List<Vector3Int>();
+                for (int i = 0; i < villageScript.Path.vectorPath.Count; i++)
+                {
+                    Vector3 roadPointVector = villageScript.Path.vectorPath[i];
+                    Vector3Int roadPointCell = Tilemap.WorldToCell(villageScript.Path.vectorPath[i]);
+
+                    if (roads.Count < 1)
+                    {
+                        roadPointsCellToAdd.Add(roadPointCell);
+                        road.RoadPoints.Add(roadPointVector);
+                        continue;
+                    }
+
+                    //Find closest road point
+                    Vector3 closestPoint = roadPointsVector3.Aggregate(((point1, point2) =>
+                        Vector3.Distance(roadPointVector, point1) < Vector3.Distance(roadPointVector, point2) ? point1 : point2));
+
+                    if (Vector3.Distance(roadPointVector, closestPoint) < 10)
+                    {
+                        if (isContinuous == false)
+                        {
+                            adjustedRoadSections.Add(new List<Vector3[]>());
+                            adjustedSectionsCount++;
+                        }
+                        adjustedRoadSections[adjustedSectionsCount-1].Add(new Vector3[2]{roadPointVector,closestPoint});
+                        isContinuous = true;
+                    }
+                    else
+                    {
+                        roadPointsCellToAdd.Add(roadPointCell);
+                        road.RoadPoints.Add(roadPointVector);
+                        isContinuous = false;
+                    }
+                }
+
+                road.AdjustedRoadPoints = adjustedRoadSections;
+                List<Vector3> debugRoadPoints = new List<Vector3>();
+                foreach (List<Vector3[]> adjustedSection in adjustedRoadSections)
+                {
+                    Vector3 startPoint = adjustedSection[0][0];
+                    Vector3 startPointDestination = adjustedSection[0][1];
+                    Vector3 endPoint = adjustedSection[adjustedSection.Count - 1][0];
+                    Vector3 endPointDestination = adjustedSection[adjustedSection.Count - 1][1];
+
+                    Path pathFromStart = SeekerTool.StartPath(startPoint, startPointDestination, null);
+                    pathFromStart.BlockUntilCalculated();
+                    Path pathFromEnd = SeekerTool.StartPath(endPoint, endPointDestination, null);
+                    pathFromEnd.BlockUntilCalculated();
+                    for (int i = 0; i < pathFromStart.vectorPath.Count; i++)
+                    {
+                        road.RoadPoints.Add(pathFromStart.vectorPath[i]);
+                        roadPointsCellToAdd.Add(Tilemap.WorldToCell(pathFromStart.vectorPath[i]));
+                    }
+
+                    for (int i = 0; i < pathFromEnd.vectorPath.Count; i++)
+                    {
+                        road.RoadPoints.Add(pathFromEnd.vectorPath[i]);
+                        roadPointsCellToAdd.Add(Tilemap.WorldToCell(pathFromEnd.vectorPath[i]));
+                    }
+
+                }
+                roadPointsVector3.AddRange(road.RoadPoints);
+                roadPointsCell.AddRange(roadPointsCellToAdd);
+                roads.Add(road);
+            }
+
+            List<TileBase> roadTiles = Enumerable.Repeat(DebugRoadTile, roadPointsCell.Count).ToList();
+            InteractableTilemap.SetTiles(roadPointsCell.ToArray(), roadTiles.ToArray());
+        }
+        
+        
+        private List<Vector3Int> RoadSectionsWithinRangeOfRoad(List<Vector3Int> road, List<Vector3Int> searchRoad, int maxSearchDistance)
+        {
+            HashSet<Vector3Int> sectionsWithinRange = new HashSet<Vector3Int>();
+
+            foreach (Vector3Int roadPoint in road)
+            {
+                IEnumerable<Vector3Int> pointsWithinRangeOfThisPoint =
+                    searchRoad.Where(point => Vector3Int.Distance(roadPoint, point) <= maxSearchDistance);             
+
+
+                // ReSharper disable once PossibleMultipleEnumeration
+                if (pointsWithinRangeOfThisPoint.Any())
+                {
+                    // ReSharper disable once PossibleMultipleEnumeration
+                    // ReSharper disable once AssignNullToNotNullAttribute
+                    sectionsWithinRange = sectionsWithinRange.Union(pointsWithinRangeOfThisPoint) as HashSet<Vector3Int>;
+                }
+            }
+
+            return sectionsWithinRange.ToList();
+        }
+
+        private Vector3Int? FindFurthestPointInVicinity(Vector3Int point, List<Vector3Int> points, List<Vector3Int> pointsToIgnore, int maxSearchDistance)
+        {
+            Vector3Int? furthestPointInVicinity = null;
+            float maxDistance = Mathf.NegativeInfinity;
+            foreach (Vector3Int possiblePoint in points)
+            {
+                if (pointsToIgnore.Contains(possiblePoint)) continue;
+                float distance = Vector3.Distance(point, possiblePoint);
+                if (distance > maxDistance && distance < maxSearchDistance && distance > 0.9f)
+                {
+                    furthestPointInVicinity = possiblePoint;
+                    maxDistance = distance;
+                }
+            }
+            return furthestPointInVicinity;
+        }
+
+        private List<Vector3Int> FindAllPointsInVicinity(Vector3Int point, List<Vector3Int> points, List<Vector3Int> pointsToIgnore, int maxSearchDistance)
+        {
+            List<Vector3Int> pointsInVicinity = new List<Vector3Int>();
+
+            foreach (Vector3Int possiblePoint in points)
+            {
+                if (pointsToIgnore.Contains(possiblePoint)) continue;
+                float distance = Vector3.Distance(point, possiblePoint);
+                if (distance < maxSearchDistance)
+                {
+                    pointsInVicinity.Add(possiblePoint);
+                }
+            }
+            return pointsInVicinity;
         }
 
 
@@ -472,42 +702,42 @@ namespace Assets.Scripts.World
                 t.HeightValue = value;
 
                 //HeightMap Analyze
-                if (value < DeepWaterHeight)
+                if (value < DeepWater)
                 {
                     t.HeightType = HeightType.DeepWater;
                     t.Collidable = false;
                 }
-                else if (value < WaterHeight)
+                else if (value < ShallowWater)
                 {
                     t.HeightType = HeightType.ShallowWater;
                     t.Collidable = false;
                 }
-                else if (value < WetSandHeight)
+                else if (value < Shore)
                 {
                     t.HeightType = HeightType.WetSand;
                     t.Collidable = true;
                 }
-                else if (value < SandHeight)
+                else if (value < Sand)
                 {
                     t.HeightType = HeightType.Sand;
                     t.Collidable = true;
                 }
-                else if (value < GrassHeight)
-                {
-                    t.HeightType = HeightType.Grass;
-                    t.Collidable = true;
-                }
-                else if (value < ForestHeight)
-                {
-                    t.HeightType = HeightType.Forest;
-                    t.Collidable = true;
-                }
-                else if (value < DirtHeight)
+                else if (value < Dirt)
                 {
                     t.HeightType = HeightType.Dirt;
                     t.Collidable = true;
                 }
-                else if (value < MountainHeight)
+                else if (value < Grass)
+                {
+                    t.HeightType = HeightType.Grass;
+                    t.Collidable = true;
+                }
+                else if (value < Forest)
+                {
+                    t.HeightType = HeightType.Forest;
+                    t.Collidable = true;
+                }
+                else if (value < Mountain)
                 {
                     t.HeightType = HeightType.Mountain;
                     t.Collidable = true;
@@ -515,7 +745,7 @@ namespace Assets.Scripts.World
                 else
                 {
                     t.HeightType = HeightType.Snow;
-                    t.Collidable = true;
+                    t.Collidable = false;
                 }
 
                 //adjust moisture based on height
@@ -556,6 +786,9 @@ namespace Assets.Scripts.World
                 heatValue = (heatValue - heatData.Min) / (heatData.Max - heatData.Min);
                 t.HeatValue = heatValue;
 
+                
+
+
                 // set heat type
                 if (heatValue < ColdestValue) t.HeatType = HeatType.Coldest;
                 else if (heatValue < ColderValue) t.HeatType = HeatType.Colder;
@@ -563,6 +796,10 @@ namespace Assets.Scripts.World
                 else if (heatValue < WarmValue) t.HeatType = HeatType.Warm;
                 else if (heatValue < WarmerValue) t.HeatType = HeatType.Warmer;
                 else t.HeatType = HeatType.Warmest;
+
+                //Cold+Wet Areas = Snow
+                if (t.HeatType == HeatType.Coldest && t.MoistureType == MoistureType.Wettest)
+                    t.HeightType = HeightType.Snow;
 
                 Tiles[x, y] = t;
             }
@@ -1210,6 +1447,49 @@ namespace Assets.Scripts.World
             t = GetRight(tile);
             if (!t.FloodFilled && tile.Collidable == t.Collidable)
                 stack.Push(t);
+        }
+
+        private void GenerateBiomeMap()
+        {
+            for (var x = 0; x < Width; x++)
+            {
+                for (var y = 0; y < Height; y++)
+                {
+
+                    if (!Tiles[x, y].Collidable) continue;
+
+                    TileData t = Tiles[x, y];
+                    t.BiomeType = GetBiomeType(t);
+                }
+            }
+        }
+
+        public BiomeType GetBiomeType(TileData tile)
+        {
+            return BiomeTable[(int)tile.MoistureType, (int)tile.HeatType];
+        }
+
+        public GameObject[] GenerateVillages()
+        {
+            int generatedVillages = 0;
+            GameObject[] villages = new GameObject[10];
+            while (generatedVillages < 10)
+            {
+                int x = Random.Range(5, Width - 5);
+                int y = Random.Range(5, Height - 5);
+
+                if (Tiles[x, y].HeightType == HeightType.Forest || Tiles[x, y].HeightType == HeightType.Grass)
+                {
+                    GameObject village = Instantiate(VillageObject);
+                    village.transform.position = new Vector3(x,y,0);
+                    villages[generatedVillages] = village;
+                    InteractableTilemap.SetTile(new Vector3Int(x,y,2), VillageTile);
+                    generatedVillages++;
+                }
+            }
+
+            return villages;
+
         }
     }
 }

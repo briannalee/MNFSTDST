@@ -1,0 +1,40 @@
+            int roadIndex = 0;
+            List<Vector3Int> roadPositions = new List<Vector3Int>();
+            List<Vector3Int>[] updatedRoads = new List<Vector3Int>[villages.Length];
+            roads.CopyTo(updatedRoads,0);
+
+            foreach (List<Vector3Int> road in roads.ToList())
+            {
+                if (road == null) continue;
+                foreach (Vector3Int roadPoint in road.ToList())
+                {
+                    Vector3Int? closestPoint = FindFurthestPointInVicinity(roadPoint, allRoadPoints, roads[roadIndex], 5);
+                    if (closestPoint != null)
+                    {
+                        /*
+                        Vector3Int bisection = (Vector3Int) ((roadPoint + closestPoint) / 2);
+                        int indexOfPoint = updatedRoads[roadIndex].FindIndex(rp => rp == roadPoint);
+                        updatedRoads[roadIndex][indexOfPoint] = bisection;
+
+                        for (int i = 0; i < villagesWithPaths; i++)
+                        {
+                            if (updatedRoads[i].Contains((Vector3Int) closestPoint))
+                            {
+                                int listIndexOfRoadPoint = updatedRoads[i].IndexOf((Vector3Int) closestPoint);
+                                updatedRoads[i][listIndexOfRoadPoint] = bisection;
+                            }
+                        }
+                        */
+                        
+                        Path pathBetweenRoads = SeekerTool.StartPath((Vector3) closestPoint, roadPoint);
+                        pathBetweenRoads.BlockUntilCalculated();
+                        List<Vector3> worldPath = pathBetweenRoads.vectorPath.ToList();
+                        worldPath.ForEach(p => roadPositions.Add(Tilemap.WorldToCell(p)));
+                        List<Vector3Int> pointsToRemove =
+                            FindAllPointsInVicinity(roadPoint, allRoadPoints, roads[roadIndex], 5);
+                        pointsToRemove.ForEach(p => allRoadPoints.Remove(p));
+                    }
+                }
+                //roadPositions.AddRange(updatedRoads[roadIndex]);
+                roadIndex++;
+            }
