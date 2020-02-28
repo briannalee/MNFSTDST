@@ -6,17 +6,15 @@ using UnityEngine.Tilemaps;
 
 namespace Assets.Scripts.Villages
 {
-    public class Village : MonoBehaviour
+    public class Village
     {
-        private Seeker seeker;
-        public Path Path = null;
+        public Vector3 Position { get; set; }
+        public Vector3Int CellPosition { get; set; }
 
-        public void FindPathToVillage(GameObject village)
+        public Village(Vector3Int position, Tilemap tilemap)
         {
-            seeker = gameObject.GetComponent<Seeker>();
-            Path = seeker.StartPath(transform.position, village.transform.position, null);
-            Path.BlockUntilCalculated();
-            Debug.Log("Path Completed: " + Path.vectorPath.Count);
+            Position = tilemap.CellToWorld(position) + new Vector3(0.5f,0.5f,0);
+            CellPosition = position;
         }
     }
 }

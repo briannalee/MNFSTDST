@@ -112,6 +112,9 @@
     <Compile Include="Assets\Scripts\World\MapOverlay.cs" />
     <Compile Include="Assets\Scripts\World\River.cs" />
     <Compile Include="Assets\Scripts\World\Road.cs" />
+    <Compile Include="Assets\Scripts\World\RoadHandler.cs" />
+    <Compile Include="Assets\Scripts\World\RoadPoint.cs" />
+    <Compile Include="Assets\Scripts\World\RoadSection.cs" />
     <Compile Include="Assets\Scripts\World\TileData.cs" />
     <Compile Include="Assets\Scripts\World\TileGroup.cs" />
     <None Include="Assets\Sprites\World\3rdparty\kenneynl_license.txt" />

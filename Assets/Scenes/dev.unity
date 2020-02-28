@@ -927,6 +927,7 @@ MonoBehaviour:
     type: 3}
   RoadTile: {fileID: 11400000, guid: ee6fb7fcd4208ee4ea8447553b274063, type: 2}
   DebugRoadTile: {fileID: 11400000, guid: 18cc015c14aa47346b1f4997f05156f2, type: 2}
+  SeekerTool: {fileID: 0}
 --- !u!156049354 &812572669
 Grid:
   m_ObjectHideFlags: 0

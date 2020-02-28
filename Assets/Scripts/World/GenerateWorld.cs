@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Assets.Scripts._3rdparty;
 using Assets.Scripts._3rdparty.AccidentalNoise.Enums;
@@ -10,9 +11,11 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using Pathfinding;
 using Random = UnityEngine.Random;
+using Vector3Int = UnityEngine.Vector3Int;
 
 namespace Assets.Scripts.World
 {
+    [Serializable]
     public class GenerateWorld : MonoBehaviour
     {
         //Border Tiles
@@ -150,14 +153,15 @@ namespace Assets.Scripts.World
 
 
         // Our texture output gameobject
-        private MeshRenderer heightMapRenderer;
+        public MeshRenderer heightMapRenderer;
         public GameObject Overlay;
 
         public AstarPath Pathfinder;
         public GameObject ImpassableColliders;
-        public GameObject VillageObject;
         public TileBase RoadTile;
         public TileBase DebugRoadTile;
+
+        public RoadHandler RoadHandler;
 
         public BiomeType[,] BiomeTable = new BiomeType[6, 6] {   
             //COLDEST        //COLDER          //COLD                  //HOT                          //HOTTER                       //HOTTEST
@@ -173,8 +177,11 @@ namespace Assets.Scripts.World
         // Start is called before the first frame update
         private void Start()
         {
-            SeekerTool = GetComponent<Seeker>();
             heightMapRenderer = Overlay.GetComponent<MeshRenderer>();
+            RoadHandler = gameObject.AddComponent<RoadHandler>();
+            RoadHandler.RoadTilemap = InteractableTilemap;
+            SeekerTool = GetComponent<Seeker>();
+
             Initialize();
             GetData();
             LoadTiles();
@@ -189,7 +196,9 @@ namespace Assets.Scripts.World
             UpdateBitmasks();
             FloodFill();
             GenerateBiomeMap();
-            GameObject[] villages = GenerateVillages();
+            
+
+            Village[] villages = GenerateVillages(InteractableTilemap);
             
 
             Vector3Int[] positions = new Vector3Int[Height * Width];
@@ -204,9 +213,6 @@ namespace Assets.Scripts.World
             for (int x = 0; x < Width; x++)
             for (int y = 0; y < Height; y++)
             {
-
-
-
 
                 if (Tiles[x, y].Bitmask != 15)
                 {
@@ -375,117 +381,27 @@ namespace Assets.Scripts.World
             //heightMapRenderer.materials[0].mainTexture = MapOverlay.GetHeightMapTexture (Width, Height, Tiles);
             Pathfinder.Scan();
 
-            GameObject lastVillage = null;
-            foreach (GameObject village in villages)
-            {
-                if (lastVillage != null)
-                {
-                    Village villageScript = village.GetComponent<Village>();
-                    villageScript.FindPathToVillage(lastVillage);
-                }
-                lastVillage = village;
-            }
-
+            string worldJson = JsonUtility.ToJson(this);
+            StreamWriter writer = new StreamWriter("world.mnfd", false);
+            writer.Write(worldJson);
+            writer.Close();
             StartCoroutine(OptimizeRoads(villages));
         }
 
 
-        private IEnumerator OptimizeRoads(GameObject[] villages)
+
+        private IEnumerator OptimizeRoads(Village[] villages)
         {
-            List<Road> roads = new List<Road>();
-            List<Vector3> roadPointsVector3 = new List<Vector3>();
-            List<Vector3Int> roadPointsCell = new List<Vector3Int>();
+            List<Vector3Int> allCellPoints = new List<Vector3Int>();
 
-
-            foreach (GameObject village in villages)
+            for (int i = 0; i < villages.Length; i++)
             {
-                //Check if there is even any path's to work on
-                Village villageScript = village.GetComponent<Village>();
-                if (villageScript.Path == null) continue;
-                
-                //Wait for the path to be finished, if needed
-                yield return StartCoroutine(villageScript.Path.WaitForPath());
-                
-                //Create new Road Class to hold our road data for this road
-                Road road = new Road(villageScript.Path.vectorPath.Count);
-
-                //AdjustedRoadSections holds the sections of road that are near other roads
-                //The internal list contains an array with length of 2
-                //Index 0: The road point
-                //Index 1: The closest point to this road point, not including this current road
-                List<List<Vector3[]>> adjustedRoadSections = new List<List<Vector3[]>>();
-                int adjustedSectionsCount = 0;
-                bool isContinuous = false;
-
-                //List of cell points to add to our master list (roadPointsCell)
-                List<Vector3Int> roadPointsCellToAdd = new List<Vector3Int>();
-                for (int i = 0; i < villageScript.Path.vectorPath.Count; i++)
-                {
-                    Vector3 roadPointVector = villageScript.Path.vectorPath[i];
-                    Vector3Int roadPointCell = Tilemap.WorldToCell(villageScript.Path.vectorPath[i]);
-
-                    if (roads.Count < 1)
-                    {
-                        roadPointsCellToAdd.Add(roadPointCell);
-                        road.RoadPoints.Add(roadPointVector);
-                        continue;
-                    }
-
-                    //Find closest road point
-                    Vector3 closestPoint = roadPointsVector3.Aggregate(((point1, point2) =>
-                        Vector3.Distance(roadPointVector, point1) < Vector3.Distance(roadPointVector, point2) ? point1 : point2));
-
-                    if (Vector3.Distance(roadPointVector, closestPoint) < 10)
-                    {
-                        if (isContinuous == false)
-                        {
-                            adjustedRoadSections.Add(new List<Vector3[]>());
-                            adjustedSectionsCount++;
-                        }
-                        adjustedRoadSections[adjustedSectionsCount-1].Add(new Vector3[2]{roadPointVector,closestPoint});
-                        isContinuous = true;
-                    }
-                    else
-                    {
-                        roadPointsCellToAdd.Add(roadPointCell);
-                        road.RoadPoints.Add(roadPointVector);
-                        isContinuous = false;
-                    }
-                }
-
-                road.AdjustedRoadPoints = adjustedRoadSections;
-                List<Vector3> debugRoadPoints = new List<Vector3>();
-                foreach (List<Vector3[]> adjustedSection in adjustedRoadSections)
-                {
-                    Vector3 startPoint = adjustedSection[0][0];
-                    Vector3 startPointDestination = adjustedSection[0][1];
-                    Vector3 endPoint = adjustedSection[adjustedSection.Count - 1][0];
-                    Vector3 endPointDestination = adjustedSection[adjustedSection.Count - 1][1];
-
-                    Path pathFromStart = SeekerTool.StartPath(startPoint, startPointDestination, null);
-                    pathFromStart.BlockUntilCalculated();
-                    Path pathFromEnd = SeekerTool.StartPath(endPoint, endPointDestination, null);
-                    pathFromEnd.BlockUntilCalculated();
-                    for (int i = 0; i < pathFromStart.vectorPath.Count; i++)
-                    {
-                        road.RoadPoints.Add(pathFromStart.vectorPath[i]);
-                        roadPointsCellToAdd.Add(Tilemap.WorldToCell(pathFromStart.vectorPath[i]));
-                    }
-
-                    for (int i = 0; i < pathFromEnd.vectorPath.Count; i++)
-                    {
-                        road.RoadPoints.Add(pathFromEnd.vectorPath[i]);
-                        roadPointsCellToAdd.Add(Tilemap.WorldToCell(pathFromEnd.vectorPath[i]));
-                    }
-
-                }
-                roadPointsVector3.AddRange(road.RoadPoints);
-                roadPointsCell.AddRange(roadPointsCellToAdd);
-                roads.Add(road);
+                int nextIndex = (i < villages.Length - 1) ? i + 1 : 0;
+                yield return StartCoroutine(RoadHandler.CreateRoad(villages[i].Position, villages[nextIndex].Position, 10));
             }
 
-            List<TileBase> roadTiles = Enumerable.Repeat(DebugRoadTile, roadPointsCell.Count).ToList();
-            InteractableTilemap.SetTiles(roadPointsCell.ToArray(), roadTiles.ToArray());
+            List<TileBase> roadTiles = Enumerable.Repeat(DebugRoadTile, RoadHandler.CellPoints.Count).ToList();
+            InteractableTilemap.SetTiles(RoadHandler.CellPoints.ToArray(), roadTiles.ToArray());
         }
         
         
@@ -1469,10 +1385,10 @@ namespace Assets.Scripts.World
             return BiomeTable[(int)tile.MoistureType, (int)tile.HeatType];
         }
 
-        public GameObject[] GenerateVillages()
+        public Village[] GenerateVillages(Tilemap tilemap)
         {
             int generatedVillages = 0;
-            GameObject[] villages = new GameObject[10];
+            Village[] villages = new Village[10];
             while (generatedVillages < 10)
             {
                 int x = Random.Range(5, Width - 5);
@@ -1480,10 +1396,9 @@ namespace Assets.Scripts.World
 
                 if (Tiles[x, y].HeightType == HeightType.Forest || Tiles[x, y].HeightType == HeightType.Grass)
                 {
-                    GameObject village = Instantiate(VillageObject);
-                    village.transform.position = new Vector3(x,y,0);
-                    villages[generatedVillages] = village;
-                    InteractableTilemap.SetTile(new Vector3Int(x,y,2), VillageTile);
+                    Vector3Int position = new Vector3Int(x, y, 0);
+                    villages[generatedVillages] = new Village(position, tilemap);
+                    tilemap.SetTile(position + new Vector3Int(0,0,2), VillageTile);
                     generatedVillages++;
                 }
             }
