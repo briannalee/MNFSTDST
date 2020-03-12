@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Default Local Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Default Local Group
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 7dbcdc9b6a2fd4c4cbbd002c4269a749
+  m_SerializeEntries:
+  - m_GUID: 9b13431bc64840e4cb72a1e8aa5b3615
+    m_Address: spritesheet_terrain
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - spritesheet
+    m_mainAssetType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+  - m_GUID: d4f49a361d01f6f489a9e260eee06a27
+    m_Address: spritesheet_villages
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - spritesheet
+    m_mainAssetType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 1e14f390e1dc17941af7dd5b6474ebfd, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 41a8c0a747429c64ab3aedcfe34c2490, type: 2}
+    - {fileID: 11400000, guid: 2c400f7d99ade6d4e98c9069fea217b1, type: 2}

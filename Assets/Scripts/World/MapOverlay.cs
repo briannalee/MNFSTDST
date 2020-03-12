@@ -45,7 +45,7 @@ namespace Assets.Scripts.World
         private static Color BorealForest = new Color(95 / 255f, 115 / 255f, 62 / 255f, 1);
         private static Color Woodland = new Color(139 / 255f, 175 / 255f, 90 / 255f, 1);
 
-        public static Texture2D GetHeightMapTexture(int width, int height, TileData[,] tiles)
+        public static Texture2D GetHeightMapTexture(int width, int height, TerrainTile[,] terrainTiles)
         {
             var texture = new Texture2D(width, height);
             var pixels = new Color[width * height];
@@ -53,7 +53,7 @@ namespace Assets.Scripts.World
             for (var x = 0; x < width; x++)
             for (var y = 0; y < height; y++)
             {
-                switch (tiles[x, y].HeightType)
+                switch (terrainTiles[x, y].HeightType)
                 {
                     case HeightType.DeepWater:
                         pixels[x + y * width] = DeepColor;
@@ -79,7 +79,7 @@ namespace Assets.Scripts.World
                 }
 
                 //darken the color if a edge tile
-                if (tiles[x, y].Bitmask != 15)
+                if (terrainTiles[x, y].Bitmask != 15)
                     pixels[x + y * width] = Color.Lerp(pixels[x + y * width], Color.black, 0.4f);
             }
 
@@ -89,7 +89,7 @@ namespace Assets.Scripts.World
             return texture;
         }
 
-        public static Texture2D GetHeatMapTexture(int width, int height, TileData[,] tiles)
+        public static Texture2D GetHeatMapTexture(int width, int height, TerrainTile[,] terrainTiles)
         {
             var texture = new Texture2D(width, height);
             var pixels = new Color[width * height];
@@ -97,7 +97,7 @@ namespace Assets.Scripts.World
             for (var x = 0; x < width; x++)
             for (var y = 0; y < height; y++)
             {
-                switch (tiles[x, y].HeatType)
+                switch (terrainTiles[x, y].HeatType)
                 {
                     case HeatType.Coldest:
                         pixels[x + y * width] = Coldest;
@@ -120,7 +120,7 @@ namespace Assets.Scripts.World
                 }
 
                 //darken the color if a edge tile
-                if ((int) tiles[x, y].HeightType > 2 && tiles[x, y].Bitmask != 15)
+                if ((int) terrainTiles[x, y].HeightType > 2 && terrainTiles[x, y].Bitmask != 15)
                     pixels[x + y * width] = Color.Lerp(pixels[x + y * width], Color.black, 0.4f);
             }
 
@@ -130,7 +130,7 @@ namespace Assets.Scripts.World
             return texture;
         }
 
-        public static Texture2D GetMoistureMapTexture(int width, int height, TileData[,] tiles)
+        public static Texture2D GetMoistureMapTexture(int width, int height, TerrainTile[,] terrainTiles)
         {
             var texture = new Texture2D(width, height);
             var pixels = new Color[width * height];
@@ -138,7 +138,7 @@ namespace Assets.Scripts.World
             for (var x = 0; x < width; x++)
             for (var y = 0; y < height; y++)
             {
-                switch (tiles[x, y].MoistureType)
+                switch (terrainTiles[x, y].MoistureType)
                 {
                     case MoistureType.Dryest:
                         pixels[x + y * width] = Dryest;
@@ -161,7 +161,7 @@ namespace Assets.Scripts.World
                 }
 
                 //darken the color if a edge tile
-                if ((int) tiles[x, y].HeightType > 2 && tiles[x, y].Bitmask != 15)
+                if ((int) terrainTiles[x, y].HeightType > 2 && terrainTiles[x, y].Bitmask != 15)
                     pixels[x + y * width] = Color.Lerp(pixels[x + y * width], Color.black, 0.4f);
             }
 
@@ -171,7 +171,7 @@ namespace Assets.Scripts.World
             return texture;
         }
 
-        public static Texture2D GetBiomeMapTexture(int width, int height, TileData[,] tiles, float coldest, float colder, float cold)
+        public static Texture2D GetBiomeMapTexture(int width, int height, TerrainTile[,] terrainTiles, float coldest, float colder, float cold)
         {
             var texture = new Texture2D(width, height);
             var pixels = new Color[width * height];
@@ -180,7 +180,7 @@ namespace Assets.Scripts.World
             {
                 for (var y = 0; y < height; y++)
                 {
-                    BiomeType value = tiles[x, y].BiomeType;
+                    BiomeType value = terrainTiles[x, y].BiomeType;
 
                     switch (value)
                     {
@@ -217,25 +217,25 @@ namespace Assets.Scripts.World
                     }
 
                     // Water tiles
-                    if (tiles[x, y].HeightType == HeightType.DeepWater)
+                    if (terrainTiles[x, y].HeightType == HeightType.DeepWater)
                     {
                         pixels[x + y * width] = DeepColor;
                     }
-                    else if (tiles[x, y].HeightType == HeightType.ShallowWater)
+                    else if (terrainTiles[x, y].HeightType == HeightType.ShallowWater)
                     {
                         pixels[x + y * width] = ShallowColor;
                     }
 
                     // draw rivers
-                    if (tiles[x, y].HeightType == HeightType.River)
+                    if (terrainTiles[x, y].HeightType == HeightType.River)
                     {
-                        float heatValue = tiles[x, y].HeatValue;
+                        float heatValue = terrainTiles[x, y].HeatValue;
 
-                        if (tiles[x, y].HeatType == HeatType.Coldest)
+                        if (terrainTiles[x, y].HeatType == HeatType.Coldest)
                             pixels[x + y * width] = Color.Lerp(IceWater, ColdWater, (heatValue) / (coldest));
-                        else if (tiles[x, y].HeatType == HeatType.Colder)
+                        else if (terrainTiles[x, y].HeatType == HeatType.Colder)
                             pixels[x + y * width] = Color.Lerp(ColdWater, RiverWater, (heatValue - coldest) / (colder - coldest));
-                        else if (tiles[x, y].HeatType == HeatType.Cold)
+                        else if (terrainTiles[x, y].HeatType == HeatType.Cold)
                             pixels[x + y * width] = Color.Lerp(RiverWater, ShallowColor, (heatValue - colder) / (cold - colder));
                         else
                             pixels[x + y * width] = ShallowColor;
@@ -243,9 +243,9 @@ namespace Assets.Scripts.World
 
 
                     // add a outline
-                    if (tiles[x, y].HeightType >= HeightType.WetSand && tiles[x, y].HeightType != HeightType.River)
+                    if (terrainTiles[x, y].HeightType >= HeightType.WetSand && terrainTiles[x, y].HeightType != HeightType.River)
                     {
-                        if (tiles[x, y].BiomeBitmask != 15)
+                        if (terrainTiles[x, y].BiomeBitmask != 15)
                             pixels[x + y * width] = Color.Lerp(pixels[x + y * width], Color.black, 0.35f);
                     }
                 }

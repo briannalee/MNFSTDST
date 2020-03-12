@@ -1,26 +1,39 @@
-﻿using Assets.Scripts.World;
+﻿using System.Collections.Generic;
+using Assets.Scripts.World;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Assets.Scripts.UI
 {
+    [UsedImplicitly]
     public class MapOverlayControl : MonoBehaviour
     {
         private bool heatOverlayEnabled = false;
         private bool heightOverlayEnabled = false;
         private bool moistureOverlayEnabled = false;
         private bool biomeOverlayEnabled = false;
-        public GameObject MapGenerator;
-        private GenerateWorld worldData;
+        public GenerateWorld WorldGenerator;
+        private WorldData worldData;
 
         // Our texture output
         private MeshRenderer textureRenderer;
 
         // Start is called before the first frame update
-        void Start()
+        public void Start()
         {
-            worldData = MapGenerator.GetComponent<GenerateWorld>();
             textureRenderer = gameObject.GetComponent<MeshRenderer>();
             textureRenderer.enabled = false;
+            StartCoroutine(WaitForMapData());
+        }
+
+        private IEnumerator<Coroutine> WaitForMapData()
+        {
+            while (!WorldGenerator.MapGenerated)
+            {
+                yield return null;
+            }
+
+            worldData = WorldGenerator.World;
         }
 
         public void EnableHeatMap()
@@ -34,7 +47,7 @@ namespace Assets.Scripts.UI
 
             textureRenderer.enabled = true;
             heatOverlayEnabled = true;
-            textureRenderer.materials[0].mainTexture = MapOverlay.GetHeatMapTexture(worldData.Width, worldData.Height, worldData.Tiles);
+            textureRenderer.materials[0].mainTexture = MapOverlay.GetHeatMapTexture(worldData.Width, worldData.Height, worldData.TerrainTileMap);
         }
 
         public void EnableHeightMap()
@@ -48,7 +61,7 @@ namespace Assets.Scripts.UI
 
             textureRenderer.enabled = true;
             heightOverlayEnabled = true;
-            textureRenderer.materials[0].mainTexture = MapOverlay.GetHeightMapTexture(worldData.Width, worldData.Height, worldData.Tiles);
+            textureRenderer.materials[0].mainTexture = MapOverlay.GetHeightMapTexture(worldData.Width, worldData.Height, worldData.TerrainTileMap);
         }
 
         public void EnableMoistureMap()
@@ -62,7 +75,7 @@ namespace Assets.Scripts.UI
 
             textureRenderer.enabled = true;
             moistureOverlayEnabled = true;
-            textureRenderer.materials[0].mainTexture = MapOverlay.GetMoistureMapTexture(worldData.Width, worldData.Height, worldData.Tiles);
+            textureRenderer.materials[0].mainTexture = MapOverlay.GetMoistureMapTexture(worldData.Width, worldData.Height, worldData.TerrainTileMap);
         }
 
         public void EnableBiomeMap()
@@ -76,7 +89,7 @@ namespace Assets.Scripts.UI
 
             textureRenderer.enabled = true;
             biomeOverlayEnabled = true;
-            textureRenderer.materials[0].mainTexture = MapOverlay.GetBiomeMapTexture(worldData.Width, worldData.Height, worldData.Tiles, worldData.ColdestValue, worldData.ColderValue, worldData.ColdestValue);
+            textureRenderer.materials[0].mainTexture = MapOverlay.GetBiomeMapTexture(worldData.Width, worldData.Height, worldData.TerrainTileMap, worldData.ColdestValue, worldData.ColderValue, worldData.ColdestValue);
         }
 
     }

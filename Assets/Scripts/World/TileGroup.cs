@@ -10,13 +10,13 @@ namespace Assets.Scripts.World
 
     public class TileGroup
     {
-        public List<TileData> Tiles;
+        public List<TerrainTile> Tiles;
 
         public TileGroupType Type;
 
         public TileGroup()
         {
-            Tiles = new List<TileData>();
+            Tiles = new List<TerrainTile>();
         }
     }
 }

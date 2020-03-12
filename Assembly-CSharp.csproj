@@ -8,7 +8,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <ProjectGuid>{C5CE594B-B051-1717-359F-BE1040705C27}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -105,21 +106,31 @@
     <Compile Include="Assets\Scripts\3rdparty\AccidentalNoise\Noise.cs" />
     <Compile Include="Assets\Scripts\3rdparty\AccidentalNoise\NoiseLookupTable.cs" />
     <Compile Include="Assets\Scripts\3rdparty\MathHelper.cs" />
+    <Compile Include="Assets\Scripts\Sprites\SpriteHelper.cs" />
     <Compile Include="Assets\Scripts\UI\MapOverlayControl.cs" />
-    <Compile Include="Assets\Scripts\Villages\Village.cs" />
+    <Compile Include="Assets\Scripts\Villages\VillageTile.cs" />
     <Compile Include="Assets\Scripts\World\GenerateWorld.cs" />
     <Compile Include="Assets\Scripts\World\MapData.cs" />
     <Compile Include="Assets\Scripts\World\MapOverlay.cs" />
-    <Compile Include="Assets\Scripts\World\River.cs" />
-    <Compile Include="Assets\Scripts\World\Road.cs" />
-    <Compile Include="Assets\Scripts\World\RoadHandler.cs" />
-    <Compile Include="Assets\Scripts\World\RoadPoint.cs" />
-    <Compile Include="Assets\Scripts\World\RoadSection.cs" />
-    <Compile Include="Assets\Scripts\World\TileData.cs" />
+    <Compile Include="Assets\Scripts\Rivers\River.cs" />
+    <Compile Include="Assets\Scripts\Rivers\RiverHelper.cs" />
+    <Compile Include="Assets\Scripts\Roads\Road.cs" />
+    <Compile Include="Assets\Scripts\Roads\RoadHandler.cs" />
+    <Compile Include="Assets\Scripts\Roads\RoadSection.cs" />
+    <Compile Include="Assets\Scripts\Roads\RoadTile.cs" />
+    <Compile Include="Assets\Scripts\World\TerrainTile.cs" />
     <Compile Include="Assets\Scripts\World\TileGroup.cs" />
+    <Compile Include="Assets\Scripts\World\WorldBase.cs" />
+    <Compile Include="Assets\Scripts\World\WorldData.cs" />
     <None Include="Assets\Sprites\World\3rdparty\kenneynl_license.txt" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor.CacheServer">
+      <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/UnityEditor.CacheServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.ScriptableBuildPipeline.Editor">
+      <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VSCode.Editor">
       <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
@@ -127,11 +138,17 @@
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.ResourceManager">
+      <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/Unity.ResourceManager.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline">
       <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Addressables.Editor">
+      <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/Unity.Addressables.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.CollabProxy.Editor">
       <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
@@ -144,6 +161,12 @@
     </Reference>
     <Reference Include="Unity.2D.Tilemap.Editor">
       <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/Unity.2D.Tilemap.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Addressables">
+      <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/Unity.Addressables.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.ScriptableBuildPipeline">
+      <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
@@ -691,6 +714,7 @@
       <Name>AstarPathfindingProjectEditor</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

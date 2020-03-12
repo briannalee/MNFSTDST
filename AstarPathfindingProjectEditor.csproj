@@ -83,11 +83,11 @@
     <None Include="Assets\AstarPathfindingProject\Editor\EditorAssets\Materials\Navmesh.cginc" />
     <None Include="Assets\AstarPathfindingProject\Editor\EditorAssets\Materials\NavmeshOutline.shader" />
     <None Include="Assets\AstarPathfindingProject\Editor\EditorAssets\Materials\Navmesh.shader" />
-    <Reference Include="UnityEngine.UI">
-      <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.TestRunner">
       <HintPath>C:/Users/Brianna Ragsdale/Documents/MNFSTDST/Library/ScriptAssemblies/UnityEditor.TestRunner.dll</HintPath>
