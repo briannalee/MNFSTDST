@@ -1,40 +1,222 @@
-            int roadIndex = 0;
-            List<Vector3Int> roadPositions = new List<Vector3Int>();
-            List<Vector3Int>[] updatedRoads = new List<Vector3Int>[villages.Length];
-            roads.CopyTo(updatedRoads,0);
 
-            foreach (List<Vector3Int> road in roads.ToList())
+        private bool SellResource(ResourceType resourceType, KeyValuePair<VillageAI, decimal[]> sale)
+        {
+            VillageAI buyer = sale.Key;
+            decimal pricePerUnit = sale.Value[0];
+            int units = (int) sale.Value[1];
+
+            bool attemptToSell = FinalizeSaleOfMyResource(resourceType, pricePerUnit, units);
+
+            if (attemptToSell)
             {
-                if (road == null) continue;
-                foreach (Vector3Int roadPoint in road.ToList())
+                bool attemptToBuy = buyer.FinalizeBuyOfOthersResources(resourceType, pricePerUnit, units);
+                if (!attemptToBuy)
                 {
-                    Vector3Int? closestPoint = FindFurthestPointInVicinity(roadPoint, allRoadPoints, roads[roadIndex], 5);
-                    if (closestPoint != null)
-                    {
-                        /*
-                        Vector3Int bisection = (Vector3Int) ((roadPoint + closestPoint) / 2);
-                        int indexOfPoint = updatedRoads[roadIndex].FindIndex(rp => rp == roadPoint);
-                        updatedRoads[roadIndex][indexOfPoint] = bisection;
+                    //The village didn't have the money, the sale fell through. Subtract the money, and give our resources back
+                    ResourceEscrow[resourceType] += units;
+                    Money -= (pricePerUnit * units);
+                    return false;
+                }
 
-                        for (int i = 0; i < villagesWithPaths; i++)
+                //The sale completed
+                if (GenerateWorld.SellOrders[resourceType].ContainsKey(this))
+                {
+                    GenerateWorld.SellOrders[resourceType][this][1] -= units;
+                }
+                if (GenerateWorld.BuyOrders[resourceType].ContainsKey(buyer))
+                {
+                    GenerateWorld.BuyOrders[resourceType][buyer][1] -= units;
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool BuyResource(ResourceType resourceType, KeyValuePair<VillageAI, decimal[]> sale)
+        {
+            VillageAI seller = sale.Key;
+            decimal pricePerUnit = sale.Value[0];
+            int units = (int) sale.Value[1];
+            bool attemptToBuy = FinalizeBuyOfOthersResources(resourceType, pricePerUnit, units);
+
+            if (attemptToBuy)
+            {
+                bool attemptToSell = seller.FinalizeSaleOfMyResource(resourceType, pricePerUnit, units);
+                if (!attemptToSell)
+                {
+                    //The village didn't have the resources, the sale fell through. Get our money back, and return the resources from escrow
+                    MoneyEscrow[resourceType] += pricePerUnit * units;
+                    Resources[resourceType] -= units;
+                    return false;
+                }
+
+                if (GenerateWorld.BuyOrders[resourceType].ContainsKey(this))
+                {
+                    GenerateWorld.BuyOrders[resourceType][this][1] -= units;
+                }
+                if (GenerateWorld.SellOrders[resourceType].ContainsKey(seller))
+                {
+                    GenerateWorld.SellOrders[resourceType][seller][1] -= units;
+                }
+                //The buy completed 
+                return true;
+            }
+            
+            return false;
+        }
+
+        public bool FinalizeSaleOfMyResource(ResourceType resourceType, decimal pricePerUnit, int units)
+        {
+            //Make sure we still have the resources to sell
+            if (ResourceEscrow[resourceType] >= units)
+            {
+                decimal income = pricePerUnit * units;
+                Money += income;
+                ResourceEscrow[resourceType] -= units;
+                //Final check
+                if (ResourceEscrow[resourceType] < 0)
+                {
+                    Money -= income;
+                    ResourceEscrow[resourceType] += units;
+                    return false;
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool FinalizeBuyOfOthersResources(ResourceType resourceType, decimal pricePerUnit, int units)
+        {
+            decimal cost = pricePerUnit * units;
+            //Make sure we still have the money to buy
+            if (MoneyEscrow[resourceType].CompareTo(cost) >= 0)
+            {
+                MoneyEscrow[resourceType] -= cost;
+                Resources[resourceType] += units;
+                //Final check
+                if (MoneyEscrow[resourceType] < 0m)
+                {
+                    MoneyEscrow[resourceType] += cost;
+                    Resources[resourceType] -= units;
+                    return false;
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+
+        
+        private bool BuyFromMarket(BuyOrder buyOrder)
+        {
+            ResourceType resourceType = buyOrder.Resource;
+            //See if there are even any sell orders for our resource
+            if (GenerateWorld.SellOrders[resourceType].Count > 0)
+            {
+                //Get sorted array of all sale orders, sorted by price
+                //KeyValuePair<VillageAI, decimal[]>[] sellOrders = GenerateWorld.SellOrders[resourceType].OrderBy(p => p.Value[0]).ToArray();
+                
+                SellOrder[] sellOrders = Market.Market.SortedSellOrders[resourceType].ToArray();
+
+                //Check the sell orders, starting with the cheapest, and see if we want to buy
+                for (var i = 0; i < sellOrders.Length; i++)
+                {
+                    if (sellOrders[i].Price <= buyOrder.Price)
+                    {
+                        //Attempt to buy these resources
+                        int buyResources = Market.Market.WorkDeal(sellOrders[i], buyOrder);
+                        if ( buyResources > 0)
                         {
-                            if (updatedRoads[i].Contains((Vector3Int) closestPoint))
-                            {
-                                int listIndexOfRoadPoint = updatedRoads[i].IndexOf((Vector3Int) closestPoint);
-                                updatedRoads[i][listIndexOfRoadPoint] = bisection;
-                            }
+                            if (buyOrder.Units < 1) return true;
                         }
+                    }
+
+                    //KeyValuePair<VillageAI, decimal[]> sellOrder = sellOrders[i];
+                   
+                    /*if (sellOrder.Value[0] <= desiredPrice)
+                    {
+                        decimal cost = sellOrder.Value[0];
+                        int sellerUnitsAvailable = (int)sellOrder.Value[1];
+                        if (sellerUnitsAvailable < 1) continue;
+                        //Only buy as many as we need from seller, up to the max they have available
+                        int buyUnits = (sellerUnitsAvailable < desiredUnits) ? 
+                            sellerUnitsAvailable : desiredUnits;
+
+
+                        //Only buy what we have money for
+                        if (MoneyEscrow[resourceType].CompareTo(cost * buyUnits) < 0)
+                        {
+                            buyUnits = (int) (MoneyEscrow[resourceType] / cost);
+                            //If we can't afford at least 1 unit, exit. Orders are sorted by price
+                            //so there is no need to check the more expensive orders
+                            if (buyUnits < 1) return false;
+                        }
+
+                        //Adjust the sell order to buy only the units we want
+                        sellOrder.Value[1] = buyUnits;
+
+
+                        //Attempt to buy
+                        bool attemptToBuy = BuyResource(resourceType, sellOrder);
                         */
-                        
-                        Path pathBetweenRoads = SeekerTool.StartPath((Vector3) closestPoint, roadPoint);
-                        pathBetweenRoads.BlockUntilCalculated();
-                        List<Vector3> worldPath = pathBetweenRoads.vectorPath.ToList();
-                        worldPath.ForEach(p => roadPositions.Add(Tilemap.WorldToCell(p)));
-                        List<Vector3Int> pointsToRemove =
-                            FindAllPointsInVicinity(roadPoint, allRoadPoints, roads[roadIndex], 5);
-                        pointsToRemove.ForEach(p => allRoadPoints.Remove(p));
+                        //If the buy order went through, check if we need to keep sourcing more of this resource, of if we can quit
+                    else
+                    {
+                        //The sale orders are sorted by price, and the orders are now above our desired price, we can stop looking at the market
+                        return false;
                     }
                 }
-                //roadPositions.AddRange(updatedRoads[roadIndex]);
-                roadIndex++;
             }
+
+            return false;
+        }
+
+
+        private bool SellToMarket(ResourceType resourceType, decimal desiredPrice)
+        {
+            //See if there are even any buy orders for our resource
+            if (GenerateWorld.BuyOrders[resourceType].Count > 0)
+            {
+                //Get sorted array of all buy orders, sorted by price, highest first
+                KeyValuePair<VillageAI, decimal[]>[] buyOrders = GenerateWorld.BuyOrders[resourceType].OrderByDescending(p => p.Value[0]).ToArray();
+
+                //Check the sell orders, starting with the most expensive, and see if we want to sell
+                for (var i = 0; i < buyOrders.Length; i++)
+                {
+                    KeyValuePair<VillageAI, decimal[]> buyOrder = buyOrders[i];
+                    if (buyOrder.Value[0] >= desiredPrice)
+                    {
+                        //How many units does the buyer want
+                        int buyerUnitsDesired = (int) buyOrder.Value[1];
+
+                        //Sell the amount of units the buyer wants, up to the amount we have left to sell
+                        int sellUnits = Mathf.Clamp(buyerUnitsDesired, 1, ResourceEscrow[resourceType]);
+
+                        //Adjust the buy order to sell only the units we can
+                        buyOrder.Value[1] = sellUnits;
+
+                        //Attempt to sell to buyer
+                        bool attemptToSell = SellResource(resourceType, buyOrder);
+
+                        //If the sell order went through, check if we need to keep selling, or if we can stop
+                        if (attemptToSell)
+                        {
+                            if (ResourceEscrow[resourceType] < 1)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //The buy orders are sorted by price, and the orders are now below our desired price. We can stop looking at the market
+                        return false;
+                    }
+                }
+            }
+
+            return false;
+        }

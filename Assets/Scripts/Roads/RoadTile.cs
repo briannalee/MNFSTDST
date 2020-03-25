@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Sprites;
+using Pathfinding;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -17,6 +18,9 @@ namespace Assets.Scripts.Roads
             ThisRoad = road;
             CellPosition = cellPosition + new Vector3Int(0, 0, 2);
             NearestNeighbour = nearestNeighbour;
+            GridGraph gridGraph = AstarPath.active.data.gridGraph;
+            GridNodeBase node = gridGraph.GetNode(cellPosition.x, cellPosition.y);
+            node.Penalty = 200;
         }
 
         public override void GetTileData(Vector3Int position, ITilemap tilemap, ref TileData tileData)

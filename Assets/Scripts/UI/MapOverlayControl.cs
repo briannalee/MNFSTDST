@@ -23,17 +23,19 @@ namespace Assets.Scripts.UI
         {
             textureRenderer = gameObject.GetComponent<MeshRenderer>();
             textureRenderer.enabled = false;
+            textureRenderer.sortingLayerName = "Overlay";
             StartCoroutine(WaitForMapData());
+
         }
 
         private IEnumerator<Coroutine> WaitForMapData()
         {
-            while (!WorldGenerator.MapGenerated)
+            while (!GenerateWorld.MapGenerated)
             {
                 yield return null;
             }
 
-            worldData = WorldGenerator.World;
+            worldData = GenerateWorld.World;
         }
 
         public void EnableHeatMap()

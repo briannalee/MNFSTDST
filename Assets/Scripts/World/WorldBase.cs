@@ -15,7 +15,7 @@ namespace Assets.Scripts.World
         public int TerrainOctaves = 6;
         public double TerrainFrequency = 1.25;
         public float DeepWater = 0.2f;
-        public float ShallowWater = 0.4f;
+        public float ShallowWater = 0.46f;
         public float Shore = 0.49f;
         public float Sand = 0.5f;
         public float Dirt = 0.55f;

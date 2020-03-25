@@ -41,3 +41,15 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Tilemap
+    uniqueID: 3359712483
+    locked: 0
+  - name: NPC
+    uniqueID: 4046148831
+    locked: 0
+  - name: Player
+    uniqueID: 3875442319
+    locked: 0
+  - name: Overlay
+    uniqueID: 1071512593
+    locked: 0

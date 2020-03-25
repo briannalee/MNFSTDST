@@ -12,6 +12,7 @@ namespace Assets.Scripts.Roads
         public List<Road> Roads = new List<Road>();
         public List<RoadTile> RoadPoints = new List<RoadTile>();
         public Dictionary<Vector3Int, RoadTile> RoadDictionary = new Dictionary<Vector3Int, RoadTile>();
+        private GridGraph gridGraph;
 
         /// <summary>
         /// Accepts a rough Seeker Path and runs it through optimizations and formatting
@@ -23,6 +24,7 @@ namespace Assets.Scripts.Roads
         /// <returns></returns>
         private IEnumerator<Coroutine> PathToRoad(Vector3[] pathPoints, int mergeDistance)
         {
+            gridGraph = AstarPath.active.data.gridGraph;
             //Create new Road Class to hold our road data for this road
             Road road = new Road(pathPoints.Length, RoadTilemap);
 
@@ -35,10 +37,11 @@ namespace Assets.Scripts.Roads
                 // If nearest neighbour is set, the path optimizer will assume the path needs combining
                 road.AddPointToSection(pathPoints[i], nearestNeighbour);
             }
-            yield return StartCoroutine(MergeRoads(road));
+            //yield return StartCoroutine(MergeRoads(road));
             FinalizeRoad(road);
             Roads.Add(road);
             RoadPoints.AddRange(road.Points);
+            yield return null;
         }
 
         /// <summary>
@@ -53,6 +56,7 @@ namespace Assets.Scripts.Roads
                 {
                     road.AddFinalizedRoadPoint(roadTile);
                     if (!RoadDictionary.ContainsKey(roadTile.CellPosition)) RoadDictionary.Add(roadTile.CellPosition,roadTile);
+                    gridGraph.CalculateConnectionsForCellAndNeighbours(roadTile.CellPosition.x,roadTile.CellPosition.y);
                 }
             }
         }

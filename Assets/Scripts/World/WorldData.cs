@@ -26,8 +26,11 @@ namespace Assets.Scripts.World
         public List<TileGroup> Waters = new List<TileGroup>();
         public List<TileGroup> Lands = new List<TileGroup>();
 
+        private readonly GridGraph gridGraph;
+
         public WorldData(int width, int height) : base(width, height)
         {
+            gridGraph = AstarPath.active.data.gridGraph;
             Initialize();
             GetData();
             LoadTiles();
@@ -42,7 +45,6 @@ namespace Assets.Scripts.World
             UpdateBitmasks();
             FloodFill();
             GenerateBiomeMap();
-            GridGraph gridGraph = AstarPath.active.data.gridGraph;
             gridGraph.GetNodes(node => gridGraph.CalculateConnections((GridNodeBase)node));
         }
 
@@ -139,7 +141,6 @@ namespace Assets.Scripts.World
         private void LoadTiles()
         {
             TerrainTileMap = new TerrainTile[Width, Height];
-            GridGraph gridGraph = AstarPath.active.data.gridGraph;
 
             for (var x = 0; x < Width; x++)
             for (var y = 0; y < Height; y++)
@@ -193,16 +194,19 @@ namespace Assets.Scripts.World
                 {
                     t.HeightType = HeightType.Sand;
                     t.Collidable = true;
+                    node.Penalty = 1200;
                 }
                 else if (value < Dirt)
                 {
                     t.HeightType = HeightType.Dirt;
                     t.Collidable = true;
+                    node.Penalty = 1000;
                 }
                 else if (value < Grass)
                 {
                     t.HeightType = HeightType.Grass;
                     t.Collidable = true;
+                    node.Penalty = 1000;
                 }
                 else if (value < Forest)
                 {

@@ -102,11 +102,9 @@ namespace Assets.Scripts.World
                 case MoistureType.Wettest:
                     tileData.color = GenerateWorld.WettestColor;
                     break;
-            }
-
-            if (Bitmask != 15)
-            {
-                tileData.color = new Color(0.9f, 0.9f, 0.9f, 1f);
+                default:
+                    tileData.color = Color;
+                    break;
             }
         }
 
@@ -140,6 +138,10 @@ namespace Assets.Scripts.World
                 count += 8;
 
             Bitmask = count;
+            if (Bitmask != 15)
+            {
+                Color = new Color(0.9f, 0.9f, 0.9f, 1f);
+            }
         }
 
 
@@ -194,7 +196,7 @@ namespace Assets.Scripts.World
             Collidable = false;
             GridGraph gridGraph = AstarPath.active.data.gridGraph;
             GridNodeBase node = gridGraph.GetNode(X, Y);
-            node.Penalty = 2000;
+            node.Penalty = 8000;
         }
 
         public void DigRiver(River river, int size)
